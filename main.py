@@ -2,11 +2,6 @@ import youtube_dl
 import cv2
 import os
 
-
-def get_id_from_url(link):
-    return link[32:]
-
-
 if not os.path.exists("frames"):
     os.mkdir("frames")
 
@@ -27,21 +22,21 @@ link_list = ["https://www.youtube.com/watch?v=y8Kyi0WNg40",
 ydl = youtube_dl.YoutubeDL({'outtmpl': '%(id)s.%(ext)s'})
 
 for current_link in link_list:
-    link_id = get_id_from_url(current_link)
+    video_info = ydl.extract_info(current_link, download=True)
+    current_file = video_info['id'] + "." + video_info['ext']
+    capture = cv2.VideoCapture(current_file)
+
+    link_id = video_info['id']
     video_folder = os.path.join("frames", link_id)
     if not os.path.exists(video_folder):
         os.mkdir(video_folder)
 
-    video_info = ydl.extract_info(current_link, download=True)
-    current_filename = video_info['id'] + "." + video_info['ext']
-    capture = cv2.VideoCapture(current_filename)
-
     for i in range(video_info['duration']):
-        for j in range(video_info['fps']):
+        for _ in range(video_info['fps']):
             success, image = capture.read()
 
         if success:
             cv2.imwrite(os.path.join("frames", link_id) + "\\" + str(link_id) + "_" + str(i) + ".png", image)
 
     capture.release()
-    os.remove(current_filename)
+    os.remove(current_file)
